@@ -7,7 +7,7 @@ This is an implementation of [Bitespeed's backend task](https://bitespeed.notion
 - [Hono](https://hono.dev) // framework
 - [Drizzle ORM](https://orm.drizzle.team/) // for the sql
 - [Zod](https://zod.dev/) // schema validation
-- [better-sqlite3](https://github.com/WiseLibs/better-sqlite3)
+- [Turso](https://turso.tech) // For the database
 
 
 ### What do we know

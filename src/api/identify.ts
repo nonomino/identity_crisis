@@ -1,19 +1,51 @@
 import { Hono } from 'hono'
-import { eq, or, inArray } from 'drizzle-orm'
+import { identityRequestSchema } from '../utils/validate'
 import { db } from '../db/client'
 import { contacts } from '../db/schema'
-import { identifySchema } from '../utils/validate'
+import {
+  findAllRelatedContacts,
+  normalizeToPrimary
+} from '../lib/identify'
 
-export const router = new Hono()
+export const identifyRoute = new Hono()
 
-router.post('/', async (c) => {
+identifyRoute.post('/', async (c) => {
   const body = await c.req.json()
-  const parsed = identifySchema.safeParse(body)
-  if (!parsed.success) return c.json({ error: parsed.error.flatten() }, 400)
+  const parsed = identityRequestSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return c.json({ error: parsed.error.flatten() }, 400)
+  }
 
   const { email, phoneNumber } = parsed.data
-  if (!email && !phoneNumber)
-    return c.json({ error: 'At least one of email or phoneNumber required' }, 400)
-    // TODO: Write the actual logic
-    return c.json({ contact: response }, 200)
+  const related = await findAllRelatedContacts(email, phoneNumber)
+
+  if (related.length === 0) {
+    // Create a new primary contact if no related contacts found
+    const now = new Date().toISOString()
+    const [created] = await db
+      .insert(contacts)
+      .values({
+        email,
+        phoneNumber,
+        linkPrecedence: 'primary',
+        linkedId: null,
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning()
+
+    const resp = {
+      contact: {
+        primaryContactId: created.id,
+        emails: email ? [email] : [],
+        phoneNumbers: phoneNumber ? [phoneNumber] : [],
+        secondaryContactIds: []
+      }
+    }
+    return c.json(resp, 201)
+  }
+
+  const response = normalizeToPrimary(related)
+  return c.json(response)
 })
