@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
-import { router as identifyRouter } from './api/identify'
+import { identifyRoute } from './api/identify'
 
 const app = new Hono()
-app.route('/identify', identifyRouter)
+app.route('/identify', identifyRoute)
 
 serve(app)
