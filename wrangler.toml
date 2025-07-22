@@ -1,0 +1,7 @@
+name = "identity-crisis"  
+compatibility_date = "2025-07-22"
+main = "src/worker.ts"
+compatibility_flags = ["nodejs_compat"]
+
+[build]
+upload.format = "service-worker"

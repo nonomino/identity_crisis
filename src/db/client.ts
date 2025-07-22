@@ -1,11 +1,14 @@
-import { createClient } from '@libsql/client'
+import { createClient } from '@libsql/client/web'
 import { drizzle } from 'drizzle-orm/libsql'
-import 'dotenv/config'
 
-const client = createClient({
-  url: process.env.DB_URL!,
-  authToken: process.env.DB_TOKEN!
-})
-
-export const db = drizzle(client)
+export function makeDb(env: {
+  DB_URL: string
+  DB_TOKEN: string
+}) {
+  const client = createClient({
+    url: env.DB_URL,
+    authToken: env.DB_TOKEN
+  })
+  return drizzle(client)
+}
 
